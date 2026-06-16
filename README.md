@@ -131,6 +131,12 @@ Use this flow for the required 8-12 minute video:
 
 ## Deployment Notes
 
+Live deployment:
+
+- Frontend: https://roomit-web.vercel.app
+- API: https://roomit-api.onrender.com
+- Database: MongoDB Atlas
+
 Suggested deployment:
 
 - Frontend: Vercel
