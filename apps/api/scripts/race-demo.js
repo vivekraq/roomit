@@ -25,6 +25,19 @@ async function main() {
     title: "Concurrency test"
   };
 
+  await db.collection("slotHolds").deleteMany({
+    roomId: room._id,
+    date: payload.date,
+    slotStart: { $in: ["16:00", "16:30"] }
+  });
+  await db.collection("bookings").deleteMany({
+    roomId: room._id,
+    date: payload.date,
+    startTime: payload.startTime,
+    endTime: payload.endTime,
+    title: payload.title
+  });
+
   console.log("Firing two near-simultaneous requests for the same room/time...");
   const [first, second] = await Promise.all([
     postBooking(payload),
