@@ -1,0 +1,20 @@
+{
+  "name": "roomit-assignment",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w apps/api\" \"npm run dev -w apps/web\"",
+    "seed": "npm run seed -w apps/api",
+    "race-demo": "npm run race-demo -w apps/api",
+    "build": "npm run build -w apps/web",
+    "start:api": "npm run start -w apps/api",
+    "start:web": "npm run start -w apps/web"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
