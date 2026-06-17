@@ -61,13 +61,23 @@ async function main() {
 }
 
 async function postBooking(payload) {
-  const response = await fetchWithRetry(`${API_URL}/api/bookings`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(payload)
-  }, 3);
-  const body = await response.json().catch(() => ({}));
-  return { status: response.status, body };
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    const response = await fetchWithRetry(`${API_URL}/api/bookings`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(payload)
+    }, 3);
+    const body = await response.json().catch(() => ({}));
+
+    if (![502, 503, 504].includes(response.status)) {
+      return { status: response.status, body };
+    }
+
+    console.log(`Transient ${response.status} from API. Retrying request...`);
+    await wait(4000);
+  }
+
+  return { status: 502, body: { error: "API stayed unavailable after retries" } };
 }
 
 main().catch((error) => {
