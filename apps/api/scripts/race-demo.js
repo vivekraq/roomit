@@ -1,4 +1,22 @@
-const API_URL = process.env.API_URL || "http://localhost:4000";
+const API_URL = process.env.API_URL || "https://roomit-api.onrender.com";
+
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function fetchWithRetry(url, options = {}, attempts = 6) {
+  let lastError;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      return await fetch(url, options);
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) {
+        console.log(`Network retry ${attempt}/${attempts - 1}. Waiting for API to wake up...`);
+        await wait(8000);
+      }
+    }
+  }
+  throw lastError;
+}
 
 function demoDate() {
   const date = new Date();
@@ -7,7 +25,7 @@ function demoDate() {
 }
 
 async function main() {
-  const roomsResponse = await fetch(`${API_URL}/api/rooms`);
+  const roomsResponse = await fetchWithRetry(`${API_URL}/api/rooms`);
   if (!roomsResponse.ok) {
     throw new Error(`Could not fetch rooms from ${API_URL}. Status: ${roomsResponse.status}`);
   }
@@ -43,11 +61,11 @@ async function main() {
 }
 
 async function postBooking(payload) {
-  const response = await fetch(`${API_URL}/api/bookings`, {
+  const response = await fetchWithRetry(`${API_URL}/api/bookings`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify(payload)
-  });
+  }, 3);
   const body = await response.json().catch(() => ({}));
   return { status: response.status, body };
 }
