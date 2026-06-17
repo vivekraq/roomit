@@ -1,43 +1,33 @@
-import "dotenv/config";
-import { connectDb } from "../src/db.js";
-
 const API_URL = process.env.API_URL || "http://localhost:4000";
 
-function tomorrow() {
+function demoDate() {
   const date = new Date();
-  date.setDate(date.getDate() + 1);
+  date.setDate(date.getDate() + 7 + Math.floor(Math.random() * 30));
   return date.toISOString().slice(0, 10);
 }
 
 async function main() {
-  const db = await connectDb();
-  const room = await db.collection("rooms").findOne({});
-  if (!room) {
-    throw new Error("No rooms found. Run npm run seed first.");
+  const roomsResponse = await fetch(`${API_URL}/api/rooms`);
+  if (!roomsResponse.ok) {
+    throw new Error(`Could not fetch rooms from ${API_URL}. Status: ${roomsResponse.status}`);
   }
+
+  const rooms = await roomsResponse.json();
+  const room = rooms[0];
+  if (!room) throw new Error("No rooms found. Seed the database first.");
 
   const payload = {
     roomId: room._id.toString(),
-    date: tomorrow(),
+    date: demoDate(),
     startTime: "16:00",
     endTime: "17:00",
     bookedBy: { name: "Race Demo", email: "race@example.com" },
     title: "Concurrency test"
   };
 
-  await db.collection("slotHolds").deleteMany({
-    roomId: room._id,
-    date: payload.date,
-    slotStart: { $in: ["16:00", "16:30"] }
-  });
-  await db.collection("bookings").deleteMany({
-    roomId: room._id,
-    date: payload.date,
-    startTime: payload.startTime,
-    endTime: payload.endTime,
-    title: payload.title
-  });
-
+  console.log(`Using API: ${API_URL}`);
+  console.log(`Room: ${room.name}`);
+  console.log(`Date/time: ${payload.date} ${payload.startTime}-${payload.endTime}`);
   console.log("Firing two near-simultaneous requests for the same room/time...");
   const [first, second] = await Promise.all([
     postBooking(payload),
