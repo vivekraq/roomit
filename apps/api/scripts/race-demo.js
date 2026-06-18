@@ -20,7 +20,8 @@ async function fetchWithRetry(url, options = {}, attempts = 6) {
 
 function demoDate() {
   const date = new Date();
-  date.setDate(date.getDate() + 7 + Math.floor(Math.random() * 30));
+  const uniqueDayOffset = 60 + (Math.floor(Date.now() / 1000) % 100000);
+  date.setDate(date.getDate() + uniqueDayOffset);
   return date.toISOString().slice(0, 10);
 }
 
